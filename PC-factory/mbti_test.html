@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI 测试</title>
+    <style>
+        :root {
+            --bg-gradient-start: #f9d5e5;
+            --bg-gradient-end: #d6eaf8;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --button-bg: #f8bbd0;
+            --button-hover: #f48fb1;
+            --progress-default: #e0e0e0;
+            --progress-completed: #ff9a9a;
+            --result-bg-start: #ffd180;
+            --result-bg-end: #81d4fa;
+            --border-radius: 15px;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', '华文彩云', sans-serif;
+            background: linear-gradient(to bottom, var(--bg-gradient-start), var(--bg-gradient-end));
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        #progress-bar {
+            width: 80%;
+            max-width: 600px;
+            background-color: var(--progress-default);
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        #progress {
+            width: 0%;
+            height: 30px;
+            background-color: var(--progress-completed);
+            border-radius: var(--border-radius);
+            transition: width 0.3s ease;
+        }
+
+        #question-card {
+            background-color: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            border-radius: var(--border-radius);
+            padding: 40px;
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #progress-text {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 13px;
+        }
+
+        .option {
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 15px 30px;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:active {
+            transform: scale(0.95);
+        }
+
+        #result {
+            display: none;
+            background: linear-gradient(to bottom, var(--result-bg-start), var(--result-bg-end));
+            border-radius: 30px;
+            padding: 40px;
+            width: 80%;
+            max-width: 600px;
+            text-align: center;
+            font-family: '微软雅黑', '幼圆', sans-serif;
+        }
+
+        #restart {
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 15px 30px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #restart:active {
+            transform: scale(0.95);
+        }
+
+        .firework {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: firework 1s ease-out infinite;
+        }
+
+        @keyframes firework {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(10);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>MBTI 测试</h1>
+    <div id="progress-bar">
+        <div id="progress"></div>
+    </div>
+    <div id="question-card">
+        <div id="progress-text">0/10</div>
+        <p id="question"></p>
+        <button class="option" id="option1" onclick="selectOption(0)"></button>
+        <button class="option" id="option2" onclick="selectOption(1)"></button>
+    </div>
+    <div id="result">
+        <h2 id="result-title"></h2>
+        <p id="result-description"></p>
+        <button id="restart" onclick="restartTest()">再试一次</button>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "当你参加社交活动时，你通常是？",
+                options: ["主动与人交流，结识新朋友", "更愿意和熟悉的人待在一起"],
+                answer: null
+            },
+            {
+                question: "在做决策时，你更倾向于？",
+                options: ["依靠自己的思考和判断", "征求他人的意见和建议"],
+                answer: null
+            },
+            {
+                question: "你更喜欢哪种类型的电影？",
+                options: ["动作、冒险类", "情感、剧情类"],
+                answer: null
+            },
+            {
+                question: "当你面对压力时，你会？",
+                options: ["积极寻找解决办法", "需要一些时间独处来调整"],
+                answer: null
+            },
+            {
+                question: "你在学习新事物时，更倾向于？",
+                options: ["实践中学习", "先理论学习再实践"],
+                answer: null
+            },
+            {
+                question: "你更喜欢和什么样的人一起工作？",
+                options: ["充满活力、有创意的人", "稳重、可靠的人"],
+                answer: null
+            },
+            {
+                question: "你更注重生活中的？",
+                options: ["新鲜刺激的体验", "稳定和安全感"],
+                answer: null
+            },
+            {
+                question: "在团队中，你通常扮演的角色是？",
+                options: ["领导者", "支持者"],
+                answer: null
+            },
+            {
+                question: "你更喜欢哪种休闲方式？",
+                options: ["户外运动", "在家看书或看电视"],
+                answer: null
+            },
+            {
+                question: "当你有一个想法时，你会？",
+                options: ["马上行动", "先计划好再行动"],
+                answer: null
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+
+        function showQuestion() {
+            const questionElement = document.getElementById('question');
+            const option1Element = document.getElementById('option1');
+            const option2Element = document.getElementById('option2');
+            const progressTextElement = document.getElementById('progress-text');
+            const progressElement = document.getElementById('progress');
+
+            const currentQuestion = questions[currentQuestionIndex];
+            questionElement.textContent = currentQuestion.question;
+            option1Element.textContent = currentQuestion.options[0];
+            option2Element.textContent = currentQuestion.options[1];
+
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressElement.style.width = `${progress}%`;
+            progressTextElement.textContent = `${currentQuestionIndex + 1}/${questions.length}`;
+        }
+
+        function selectOption(optionIndex) {
+            questions[currentQuestionIndex].answer = optionIndex;
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion();
+            } else {
+                document.getElementById('progress-text').style.display = 'none';
+                calculateResult();
+            }
+        }
+
+        function calculateResult() {
+            let eCount = 0;
+            let nCount = 0;
+            let tCount = 0;
+            let jCount = 0;
+
+            // 计分逻辑示例，可按需调整
+            for (let i = 0; i < questions.length; i++) {
+                if (i === 0 && questions[i].answer === 0) eCount++;
+                if (i === 1 && questions[i].answer === 0) nCount++;
+                if (i === 2 && questions[i].answer === 0) tCount++;
+                if (i === 3 && questions[i].answer === 0) jCount++;
+            }
+
+            const e = eCount > 0? 'E' : 'I';
+            const n = nCount > 0? 'N' : 'S';
+            const t = tCount > 0? 'T' : 'F';
+            const j = jCount > 0? 'J' : 'P';
+
+            const resultType = e + n + t + j;
+            let resultDescription = '';
+
+            switch (resultType) {
+                case 'ENTJ':
+                    resultDescription = '你是天生的领导者👍，拥有卓越的组织和决策能力，带领团队冲锋陷阵！';
+                    break;
+                case 'ENFP':
+                    resultDescription = '你就像小太阳😜，热情又有创意，走到哪都能带来欢乐！';
+                    break;
+                case 'INFP':
+                    resultDescription = '你内心柔软又浪漫🤗，充满同情心和想象力，是生活中的诗人！';
+                    break;
+                case 'ISTJ':
+                    resultDescription = '你稳重可靠👌，注重细节和秩序，是团队里的定海神针！';
+                    break;
+                default:
+                    resultDescription = `你的 MBTI 类型是 ${resultType}✨，独特又有魅力！`;
+            }
+
+            showResult(resultType, resultDescription);
+        }
+
+        function showResult(resultType, resultDescription) {
+            const questionCard = document.getElementById('question-card');
+            const resultElement = document.getElementById('result');
+            const resultTitle = document.getElementById('result-title');
+            const resultDescriptionElement = document.getElementById('result-description');
+
+            questionCard.style.display = 'none';
+            resultElement.style.display = 'block';
+            resultTitle.textContent = resultType;
+            resultDescriptionElement.textContent = resultDescription;
+
+            createFireworks();
+        }
+
+        function createFireworks() {
+            const numFireworks = 50;
+            for (let i = 0; i < numFireworks; i++) {
+                const firework = document.createElement('div');
+                firework.classList.add('firework');
+                firework.style.left = `${Math.random() * window.innerWidth}px`;
+                firework.style.top = `${Math.random() * window.innerHeight}px`;
+                const colors = ['#ff69b4', '#ffff00', '#00bfff'];
+                firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(firework);
+            }
+        }
+
+        function restartTest() {
+            currentQuestionIndex = 0;
+            for (let i = 0; i < questions.length; i++) {
+                questions[i].answer = null;
+            }
+            const questionCard = document.getElementById('question-card');
+            const resultElement = document.getElementById('result');
+            const fireworks = document.querySelectorAll('.firework');
+            document.getElementById('progress-text').style.display = 'block';
+
+            fireworks.forEach(firework => firework.remove());
+            questionCard.style.display = 'block';
+            resultElement.style.display = 'none';
+            showQuestion();
+        }
+
+        showQuestion();
+    </script>
+</body>
+
+</html>    
